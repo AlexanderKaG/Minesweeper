@@ -1,5 +1,6 @@
 package dev.alexanderkg.minesweeper.domain.valueobjects;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class Grid {
@@ -22,10 +23,10 @@ public class Grid {
                     boolean placeMine = random.nextInt(100) < chanceToPlaceMine;
                     if (populatedTiles[i][j] == null) {
                         if (minesLeftToPlace > 0 && placeMine) {
-                            populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
+                            populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.MINE);
                             minesLeftToPlace = minesLeftToPlace - 1;
                         } else {
-                            populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.VALUE);
+                            populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.VALUE);
                         }
                     }
                     if (populatedTiles[i][j] != null) {

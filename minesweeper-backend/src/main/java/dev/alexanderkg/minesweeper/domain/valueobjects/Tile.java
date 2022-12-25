@@ -16,6 +16,10 @@ public class Tile {
         this.tileType = tileType;
     }
 
+    public TileValue getAmountOfNeighboringMines() {
+        return amountOfNeighboringMines;
+    }
+
     public void setAmountOfNeighboringMines(TileValue amountOfNeighboringMines) {
         this.amountOfNeighboringMines = amountOfNeighboringMines;
     }

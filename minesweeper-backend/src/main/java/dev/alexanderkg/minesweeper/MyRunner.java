@@ -15,13 +15,15 @@ public class MyRunner implements CommandLineRunner {
         MineAmount amountOfMines = new MineAmount(10);
         Game minesweeper = new Game(new Grid(rowLength, columnLength, amountOfMines));
 
-        int loopCount = 0;
         for (int i = 0; i < rowLength.getValue(); i++) {
             for (int j = 0; j < columnLength.getValue(); j++) {
-                Tile tile = minesweeper.getGrid().getTiles()[i][j];
-                loopCount++;
-                System.out.println(loopCount + " - " + tile);
+                if (minesweeper.getGrid().getTiles()[i][j].getTileType() == TileType.MINE) {
+                    System.out.print("x ");
+                } else {
+                    System.out.print(minesweeper.getGrid().getTiles()[i][j].getAmountOfNeighboringMines().getValue() + " ");
+                }
             }
+            System.out.println();
         }
     }
 }
