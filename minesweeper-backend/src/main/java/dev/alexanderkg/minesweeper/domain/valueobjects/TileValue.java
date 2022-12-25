@@ -1,14 +1,14 @@
 package dev.alexanderkg.minesweeper.domain.valueobjects;
 
-public class IsMine {
+public class TileValue {
 
-    private final boolean value;
+    private final int value;
 
-    public IsMine(boolean value) {
+    public TileValue(int value) {
         this.value = value;
     }
 
-    public boolean isValue() {
+    public int getValue() {
         return value;
     }
 }

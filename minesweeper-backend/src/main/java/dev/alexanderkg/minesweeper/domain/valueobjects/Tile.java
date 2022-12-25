@@ -2,16 +2,38 @@ package dev.alexanderkg.minesweeper.domain.valueobjects;
 
 public class Tile {
 
-    private IsMine isMine;
-    private int amountOfNeighboringMines;
-    private boolean hasBeenClicked;
+    private TileValue amountOfNeighboringMines;
+    private Coordinate coordinate;
+    private TileType tileType;
+    private TileState state;
 
-    public Tile(IsMine value) {
-        this.isMine = value;
+    protected Tile() {
+        // Empty constructor for JPA.
+    }
+
+    public Tile(Coordinate coordinate, TileType tileType) {
+        this.coordinate = coordinate;
+        this.tileType = tileType;
+    }
+
+    public void setAmountOfNeighboringMines(TileValue amountOfNeighboringMines) {
+        this.amountOfNeighboringMines = amountOfNeighboringMines;
+    }
+
+    public Coordinate getCoordinate() {
+        return coordinate;
+    }
+
+    public TileType getTileType() {
+        return tileType;
+    }
+
+    public TileState getState() {
+        return state;
     }
 
     @Override
     public String toString() {
-        return String.format("Is mine: %b", isMine.isValue());
+        return String.format("%s: %s %s", this.tileType, this.amountOfNeighboringMines.getValue(), this.coordinate);
     }
 }
