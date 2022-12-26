@@ -1,6 +1,5 @@
 package dev.alexanderkg.minesweeper.domain.valueobjects;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class Grid {
@@ -93,7 +92,79 @@ public class Grid {
                     }
                 }
 
-                if (isNotCornerTile(rowLength, columnLength, i, j)) {
+                if (i == 0 && j != 0 && j != columnLength.getValue() - 1) {
+                    if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                }
+
+                if (i == rowLength.getValue() - 1 && j != 0 && j != columnLength.getValue() - 1) {
+                    if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                }
+
+                if (j == 0 && i != 0 && i != rowLength.getValue() - 1) {
+                    if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                }
+
+                if (j == columnLength.getValue() - 1 && i != 0 && i != rowLength.getValue() - 1) {
+                    if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j -1].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                    if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+                        amountOfNeighboringMines++;
+                    }
+                }
+
+                if (isNotEdgeTile(rowLength, columnLength, i, j)) {
                     if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
                         amountOfNeighboringMines++;
                     }
@@ -128,7 +199,7 @@ public class Grid {
         return populatedTiles;
     }
 
-    private static boolean isNotCornerTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
+    private static boolean isNotEdgeTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
         return i > 0 && j > 0 && i < rowLength.getValue() - 1 && j < columnLength.getValue() - 1;
     }
 
