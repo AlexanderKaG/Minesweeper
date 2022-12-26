@@ -18,75 +18,88 @@ public class Grid {
         while (minesLeftToPlace > 0) {
             for (int i = 0; i < rowLength.getValue(); i++) {
                 for (int j = 0; j < columnLength.getValue(); j++) {
-                    int chanceToPlaceMine = (rowLength.getValue() * columnLength.getValue()) / amountOfMines.getValue();
-                    boolean placeMine = random.nextInt(100) < chanceToPlaceMine;
-                    if (populatedTiles[i][j] == null) {
-                        if (minesLeftToPlace > 0 && placeMine) {
-                            populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.MINE);
-                            minesLeftToPlace = minesLeftToPlace - 1;
-                        } else {
-                            populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.VALUE);
-                        }
-                    }
-                    if (populatedTiles[i][j] != null && populatedTiles[i][j].getTileType() == TileType.VALUE && minesLeftToPlace > 0 && placeMine) {
-                        populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
-                        minesLeftToPlace = minesLeftToPlace - 1;
-                    }
+                    minesLeftToPlace = placeTiles(rowLength, columnLength, amountOfMines, populatedTiles, minesLeftToPlace, i, j);
                 }
 
             }
         }
 
-        calculateTileValues(populatedTiles, rowLength, columnLength);
+        calculateAllTileValues(populatedTiles, rowLength, columnLength);
 
         return populatedTiles;
     }
 
-    private void calculateTileValues(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
-        for (int i = 0; i < rowLength.getValue(); i++) {
-            for (int j = 0; j < columnLength.getValue(); j++) {
-                int amountOfNeighboringMines = 0;
-
-                if (isTopLeftCornerTile(i, j)) {
-                    amountOfNeighboringMines = calculateTopLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isTopRightCornerTile(columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateTopRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isBottomLeftCornerTile(rowLength, i, j)) {
-                    amountOfNeighboringMines = calculateBottomLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isBottomRightCornerTile(rowLength, columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateBottomRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isTopEdgeNotCornerTile(columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateTopEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isBottomEdgeNotCornerTile(rowLength, columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateBottomEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isLeftEdgeNotCornerTile(rowLength, i, j)) {
-                    amountOfNeighboringMines = calculateLeftEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isRightEdgeNotCornerTile(rowLength, columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateRightEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                if (isNotEdgeTile(rowLength, columnLength, i, j)) {
-                    amountOfNeighboringMines = calculateNotEdgeTile(populatedTiles, i, j, amountOfNeighboringMines);
-                }
-
-                TileValue value = new TileValue(amountOfNeighboringMines);
-                populatedTiles[i][j].setAmountOfNeighboringMines(value);
+    private int placeTiles(RowLength rowLength, ColumnLength columnLength, MineAmount amountOfMines, Tile[][] populatedTiles, int minesLeftToPlace, int i, int j) {
+        int chanceToPlaceMine = (rowLength.getValue() * columnLength.getValue()) / amountOfMines.getValue();
+        boolean placeMine = random.nextInt(100) < chanceToPlaceMine;
+        if (populatedTiles[i][j] == null) {
+            if (minesLeftToPlace > 0 && placeMine) {
+                populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.MINE);
+                minesLeftToPlace = minesLeftToPlace - 1;
+            } else {
+                populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.VALUE);
             }
         }
+        if (populatedTiles[i][j] != null && populatedTiles[i][j].getTileType() == TileType.VALUE && minesLeftToPlace > 0 && placeMine) {
+            populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
+            minesLeftToPlace = minesLeftToPlace - 1;
+        }
+        return minesLeftToPlace;
+    }
+
+    private void calculateAllTileValues(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
+        iterateThroughArray(populatedTiles, rowLength, columnLength);
+    }
+
+    private static void iterateThroughArray(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
+        for (int i = 0; i < rowLength.getValue(); i++) {
+            for (int j = 0; j < columnLength.getValue(); j++) {
+                calculateEachTile(populatedTiles, rowLength, columnLength, i, j);
+            }
+        }
+    }
+
+    private static void calculateEachTile(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength, int i, int j) {
+        int amountOfNeighboringMines = 0;
+
+        if (isTopLeftCornerTile(i, j)) {
+            amountOfNeighboringMines = calculateTopLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isTopRightCornerTile(columnLength, i, j)) {
+            amountOfNeighboringMines = calculateTopRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isBottomLeftCornerTile(rowLength, i, j)) {
+            amountOfNeighboringMines = calculateBottomLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isBottomRightCornerTile(rowLength, columnLength, i, j)) {
+            amountOfNeighboringMines = calculateBottomRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isTopEdgeNotCornerTile(columnLength, i, j)) {
+            amountOfNeighboringMines = calculateTopEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isBottomEdgeNotCornerTile(rowLength, columnLength, i, j)) {
+            amountOfNeighboringMines = calculateBottomEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isLeftEdgeNotCornerTile(rowLength, i, j)) {
+            amountOfNeighboringMines = calculateLeftEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isRightEdgeNotCornerTile(rowLength, columnLength, i, j)) {
+            amountOfNeighboringMines = calculateRightEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        if (isNotEdgeTile(rowLength, columnLength, i, j)) {
+            amountOfNeighboringMines = calculateNotEdgeTile(populatedTiles, i, j, amountOfNeighboringMines);
+        }
+
+        TileValue value = new TileValue(amountOfNeighboringMines);
+        populatedTiles[i][j].setAmountOfNeighboringMines(value);
     }
 
     private static int calculateNotEdgeTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
