@@ -28,23 +28,21 @@ public class Grid {
                             populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.VALUE);
                         }
                     }
-                    if (populatedTiles[i][j] != null) {
-                        if (populatedTiles[i][j].getTileType() == TileType.VALUE && minesLeftToPlace > 0 && placeMine) {
-                            populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
-                            minesLeftToPlace = minesLeftToPlace - 1;
-                        }
+                    if (populatedTiles[i][j] != null && populatedTiles[i][j].getTileType() == TileType.VALUE && minesLeftToPlace > 0 && placeMine) {
+                        populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
+                        minesLeftToPlace = minesLeftToPlace - 1;
                     }
                 }
 
             }
         }
 
-        populatedTiles = calculateTileValues(populatedTiles, rowLength, columnLength);
+        calculateTileValues(populatedTiles, rowLength, columnLength);
 
         return populatedTiles;
     }
 
-    private Tile[][] calculateTileValues(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
+    private void calculateTileValues(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
         for (int i = 0; i < rowLength.getValue(); i++) {
             for (int j = 0; j < columnLength.getValue(); j++) {
                 int amountOfNeighboringMines = 0;
@@ -89,7 +87,6 @@ public class Grid {
                 populatedTiles[i][j].setAmountOfNeighboringMines(value);
             }
         }
-        return populatedTiles;
     }
 
     private static int calculateNotEdgeTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
