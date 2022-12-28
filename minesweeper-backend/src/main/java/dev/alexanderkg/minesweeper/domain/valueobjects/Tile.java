@@ -11,9 +11,10 @@ public class Tile {
         // Empty constructor for JPA.
     }
 
-    public Tile(Coordinate coordinate, TileType tileType) {
+    public Tile(Coordinate coordinate, TileType tileType, TileState state) {
         this.coordinate = coordinate;
         this.tileType = tileType;
+        this.state = state;
     }
 
     public TileValue getAmountOfNeighboringMines() {
@@ -30,6 +31,10 @@ public class Tile {
 
     public TileType getTileType() {
         return tileType;
+    }
+
+    public void setTileType(TileType tileType) {
+        this.tileType = tileType;
     }
 
     public TileState getState() {

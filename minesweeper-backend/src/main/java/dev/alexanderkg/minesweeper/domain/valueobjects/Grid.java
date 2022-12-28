@@ -4,298 +4,305 @@ import java.util.Random;
 
 public class Grid {
 
-    private final Random random = new Random();
+    private final int rowLength;
+    private final int columnLength;
+    private final int amountOfMines;
     private final Tile[][] tiles;
 
     public Grid(RowLength rowLength, ColumnLength columnLength, MineAmount amountOfMines) {
-        this.tiles = populateGrid(rowLength, columnLength, amountOfMines);
+        this.rowLength = rowLength.getValue();
+        this.columnLength = columnLength.getValue();
+        this.amountOfMines = amountOfMines.getValue();
+        this.tiles = generateTiles();
     }
 
-    private Tile[][] populateGrid(RowLength rowLength, ColumnLength columnLength, MineAmount amountOfMines) {
-        Tile[][] populatedTiles = new Tile[rowLength.getValue()][columnLength.getValue()];
+    private Tile[][] generateTiles() {
 
-        int minesLeftToPlace = amountOfMines.getValue();
-        while (minesLeftToPlace > 0) {
-            for (int i = 0; i < rowLength.getValue(); i++) {
-                for (int j = 0; j < columnLength.getValue(); j++) {
-                    minesLeftToPlace = placeTiles(rowLength, columnLength, amountOfMines, populatedTiles, minesLeftToPlace, i, j);
+        final Tile[][] blueprint = new Tile[rowLength][columnLength];
+
+        int minesLeftToGenerate = amountOfMines;
+
+        while (minesLeftToGenerate > 0) {
+            for (int y = 0; y < rowLength; y++) {
+                for (int x = 0; x < columnLength; x++) {
+                    minesLeftToGenerate = generateTile(blueprint, minesLeftToGenerate, y, x);
                 }
-
             }
         }
 
-        calculateAllTileValues(populatedTiles, rowLength, columnLength);
+        calculateTileValues(blueprint);
 
-        return populatedTiles;
+        return blueprint;
     }
 
-    private int placeTiles(RowLength rowLength, ColumnLength columnLength, MineAmount amountOfMines, Tile[][] populatedTiles, int minesLeftToPlace, int i, int j) {
-        int chanceToPlaceMine = (rowLength.getValue() * columnLength.getValue()) / amountOfMines.getValue();
-        boolean placeMine = random.nextInt(100) < chanceToPlaceMine;
-        if (populatedTiles[i][j] == null) {
-            if (minesLeftToPlace > 0 && placeMine) {
-                populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.MINE);
-                minesLeftToPlace = minesLeftToPlace - 1;
+    private int generateTile(Tile[][] blueprint, int minesLeftToGenerate, int y, int x) {
+        final Random random = new Random();
+        int chanceToGenerateMine = (rowLength * columnLength) / amountOfMines;
+        boolean generateMine = random.nextInt(100) < chanceToGenerateMine;
+
+        if (blueprint[y][x] == null) {
+            if (minesLeftToGenerate > 0 && generateMine) {
+                blueprint[y][x] = new Tile(new Coordinate(x, y), TileType.MINE, TileState.CLOSED);
+                minesLeftToGenerate--;
             } else {
-                populatedTiles[i][j] = new Tile(new Coordinate(j, i), TileType.VALUE);
+                blueprint[y][x] = new Tile(new Coordinate(x, y), TileType.NORMAL, TileState.CLOSED);
             }
         }
-        if (populatedTiles[i][j] != null && populatedTiles[i][j].getTileType() == TileType.VALUE && minesLeftToPlace > 0 && placeMine) {
-            populatedTiles[i][j] = new Tile(new Coordinate(i, j), TileType.MINE);
-            minesLeftToPlace = minesLeftToPlace - 1;
+
+        if (blueprint[y][x] != null && blueprint[y][x].getTileType() == TileType.NORMAL && minesLeftToGenerate > 0 && generateMine) {
+            blueprint[y][x].setTileType(TileType.MINE);
+            minesLeftToGenerate--;
         }
-        return minesLeftToPlace;
+
+
+        return minesLeftToGenerate;
     }
 
-    private void calculateAllTileValues(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
-        iterateThroughArray(populatedTiles, rowLength, columnLength);
-    }
-
-    private static void iterateThroughArray(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength) {
-        for (int i = 0; i < rowLength.getValue(); i++) {
-            for (int j = 0; j < columnLength.getValue(); j++) {
-                calculateEachTile(populatedTiles, rowLength, columnLength, i, j);
+    private void calculateTileValues(Tile[][] blueprintTiles) {
+        for (int y = 0; y < rowLength; y++) {
+            for (int x = 0; x < columnLength; x++) {
+                calculateEachTile(blueprintTiles, y, x);
             }
         }
     }
 
-    private static void calculateEachTile(Tile[][] populatedTiles, RowLength rowLength, ColumnLength columnLength, int i, int j) {
+    private void calculateEachTile(Tile[][] blueprintTiles, int y, int x) {
         int amountOfNeighboringMines = 0;
 
-        if (isTopLeftCornerTile(i, j)) {
-            amountOfNeighboringMines = calculateTopLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isTopLeftCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateTopLeftCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isTopRightCornerTile(columnLength, i, j)) {
-            amountOfNeighboringMines = calculateTopRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isTopRightCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateTopRightCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isBottomLeftCornerTile(rowLength, i, j)) {
-            amountOfNeighboringMines = calculateBottomLeftCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isBottomLeftCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateBottomLeftCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isBottomRightCornerTile(rowLength, columnLength, i, j)) {
-            amountOfNeighboringMines = calculateBottomRightCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isBottomRightCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateBottomRightCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isTopEdgeNotCornerTile(columnLength, i, j)) {
-            amountOfNeighboringMines = calculateTopEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isTopEdgeNotCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateTopEdgeNotCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isBottomEdgeNotCornerTile(rowLength, columnLength, i, j)) {
-            amountOfNeighboringMines = calculateBottomEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isBottomEdgeNotCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateBottomEdgeNotCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isLeftEdgeNotCornerTile(rowLength, i, j)) {
-            amountOfNeighboringMines = calculateLeftEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isLeftEdgeNotCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateLeftEdgeNotCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isRightEdgeNotCornerTile(rowLength, columnLength, i, j)) {
-            amountOfNeighboringMines = calculateRightEdgeNotCornerTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isRightEdgeNotCornerTile(y, x)) {
+            amountOfNeighboringMines = calculateRightEdgeNotCornerTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
-        if (isNotEdgeTile(rowLength, columnLength, i, j)) {
-            amountOfNeighboringMines = calculateNotEdgeTile(populatedTiles, i, j, amountOfNeighboringMines);
+        if (isNotEdgeTile(y, x)) {
+            amountOfNeighboringMines = calculateNotEdgeTile(blueprintTiles, y, x, amountOfNeighboringMines);
         }
 
         TileValue value = new TileValue(amountOfNeighboringMines);
-        populatedTiles[i][j].setAmountOfNeighboringMines(value);
+        blueprintTiles[y][x].setAmountOfNeighboringMines(value);
     }
 
-    private static int calculateNotEdgeTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+    private static int calculateNotEdgeTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y - 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isNotEdgeTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
-        return i > 0 && j > 0 && i < rowLength.getValue() - 1 && j < columnLength.getValue() - 1;
+    private boolean isNotEdgeTile(int y, int x) {
+        return y > 0 && x > 0 && y < rowLength - 1 && x < columnLength - 1;
     }
 
-    private static int calculateRightEdgeNotCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+    private static int calculateRightEdgeNotCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isRightEdgeNotCornerTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
-        return j == columnLength.getValue() - 1 && i != 0 && i != rowLength.getValue() - 1;
+    private boolean isRightEdgeNotCornerTile(int y, int x) {
+        return x == columnLength - 1 && y != 0 && y != rowLength - 1;
     }
 
-    private static int calculateLeftEdgeNotCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+    private static int calculateLeftEdgeNotCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isLeftEdgeNotCornerTile(RowLength rowLength, int i, int j) {
-        return j == 0 && i != 0 && i != rowLength.getValue() - 1;
+    private boolean isLeftEdgeNotCornerTile(int y, int x) {
+        return x == 0 && y != 0 && y != rowLength - 1;
     }
 
-    private static int calculateBottomEdgeNotCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+    private static int calculateBottomEdgeNotCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isBottomEdgeNotCornerTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
-        return i == rowLength.getValue() - 1 && j != 0 && j != columnLength.getValue() - 1;
+    private boolean isBottomEdgeNotCornerTile(int y, int x) {
+        return y == rowLength - 1 && x != 0 && x != columnLength - 1;
     }
 
-    private static int calculateTopEdgeNotCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+    private static int calculateTopEdgeNotCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isTopEdgeNotCornerTile(ColumnLength columnLength, int i, int j) {
-        return i == 0 && j != 0 && j != columnLength.getValue() - 1;
+    private boolean isTopEdgeNotCornerTile(int y, int x) {
+        return y == 0 && x != 0 && x != columnLength - 1;
     }
 
-    private static int calculateBottomRightCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+    private static int calculateBottomRightCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isBottomRightCornerTile(RowLength rowLength, ColumnLength columnLength, int i, int j) {
-        return i == rowLength.getValue() - 1 && j == columnLength.getValue() - 1;
+    private boolean isBottomRightCornerTile(int y, int x) {
+        return y == rowLength - 1 && x == columnLength - 1;
     }
 
-    private static int calculateBottomLeftCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+    private static int calculateBottomLeftCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i - 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y - 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isBottomLeftCornerTile(RowLength rowLength, int i, int j) {
-        return i == rowLength.getValue() - 1 && j == 0;
+    private boolean isBottomLeftCornerTile(int y, int x) {
+        return y == rowLength - 1 && x == 0;
     }
 
-    private static int calculateTopRightCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j - 1].getTileType() == TileType.MINE) {
+    private static int calculateTopRightCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j - 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x - 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isTopRightCornerTile(ColumnLength columnLength, int i, int j) {
-        return i == 0 && j == columnLength.getValue() - 1;
+    private boolean isTopRightCornerTile(int y, int x) {
+        return y == 0 && x == columnLength - 1;
     }
 
-    private static int calculateTopLeftCornerTile(Tile[][] populatedTiles, int i, int j, int amountOfNeighboringMines) {
-        if (populatedTiles[i][j + 1].getTileType() == TileType.MINE) {
+    private static int calculateTopLeftCornerTile(Tile[][] blueprintTiles, int y, int x, int amountOfNeighboringMines) {
+        if (blueprintTiles[y][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
-        if (populatedTiles[i + 1][j + 1].getTileType() == TileType.MINE) {
+        if (blueprintTiles[y + 1][x + 1].getTileType() == TileType.MINE) {
             amountOfNeighboringMines++;
         }
         return amountOfNeighboringMines;
     }
 
-    private static boolean isTopLeftCornerTile(int i, int j) {
-        return i == 0 && j == 0;
+    private static boolean isTopLeftCornerTile(int y, int x) {
+        return y == 0 && x == 0;
     }
 
 
     public Tile[][] getTiles() {
-        return tiles;
+        return this.tiles;
     }
 }
